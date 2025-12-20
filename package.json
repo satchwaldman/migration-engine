@@ -1,0 +1,29 @@
+{
+  "name": "migration-engine",
+  "version": "1.0.0",
+  "description": "A Migration Engine that classifies files into a folder hierarchy using an LLM",
+  "main": "dist/classifier.js",
+  "scripts": {
+    "test": "ts-node src/test.ts",
+    "build": "tsc",
+    "start": "ts-node src/test.ts"
+  },
+  "keywords": [
+    "migration",
+    "file-classification",
+    "llm",
+    "gemini"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}
+
