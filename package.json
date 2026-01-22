@@ -6,7 +6,11 @@
   "scripts": {
     "test": "ts-node src/test.ts",
     "build": "tsc",
-    "start": "ts-node src/test.ts"
+    "start": "ts-node src/test.ts",
+    "classify": "ts-node src/classify-file.ts",
+    "batch": "ts-node src/batch-classify.ts",
+    "scan": "ts-node src/scan-hierarchy.ts",
+    "prune": "ts-node src/prune-hierarchy.ts"
   },
   "keywords": [
     "migration",
@@ -18,7 +22,9 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "mammoth": "^1.11.0",
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -26,4 +32,3 @@
     "typescript": "^5.0.0"
   }
 }
-

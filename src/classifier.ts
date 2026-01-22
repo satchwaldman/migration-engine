@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Hierarchy, hierarchyToString } from './utils/hierarchy';
+import { trackUsage } from './usage-tracker';
 
 export interface FolderSuggestion {
   path: string[];           // e.g., ["Free Time", "Personal Projects", "Technical Projects"]
@@ -85,6 +86,9 @@ Return only the JSON array, no additional text.`;
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
+    
+    // Track API usage
+    trackUsage(response.usageMetadata);
 
     // Extract JSON from the response (handle cases where LLM adds markdown code blocks)
     let jsonText = text.trim();
@@ -101,13 +105,14 @@ Return only the JSON array, no additional text.`;
       throw new Error('Invalid response: expected an array of suggestions');
     }
 
-    // Validate each suggestion
+    // Validate and normalize each suggestion
     for (const suggestion of suggestions) {
       if (!Array.isArray(suggestion.path)) {
         throw new Error('Invalid response: path must be an array');
       }
+      // Default isNewFolder to false if missing
       if (typeof suggestion.isNewFolder !== 'boolean') {
-        throw new Error('Invalid response: isNewFolder must be a boolean');
+        suggestion.isNewFolder = false;
       }
       if (typeof suggestion.confidence !== 'number' || suggestion.confidence < 0 || suggestion.confidence > 100) {
         throw new Error('Invalid response: confidence must be a number between 0 and 100');
@@ -259,11 +264,23 @@ export async function classifyFile(
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  // Make 3 separate API calls
+  // Make trials until we get 3 successful ones (max 6 attempts to avoid infinite loops)
   const trials: TrialResult[] = [];
-  for (let i = 0; i < 3; i++) {
-    const trial = await makeTrial(fileContent, filename, hierarchy, genAI);
-    trials.push(trial);
+  let attempts = 0;
+  const maxAttempts = 6;
+  
+  while (trials.length < 3 && attempts < maxAttempts) {
+    attempts++;
+    try {
+      const trial = await makeTrial(fileContent, filename, hierarchy, genAI);
+      trials.push(trial);
+    } catch (err) {
+      // Trial failed, will retry automatically
+    }
+  }
+
+  if (trials.length === 0) {
+    throw new Error('All classification trials failed');
   }
 
   // Aggregate suggestions
